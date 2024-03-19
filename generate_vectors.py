@@ -25,6 +25,8 @@ from behaviors import (
     ALL_BEHAVIORS,
 )
 
+from accelerate import Accelerator
+
 load_dotenv()
 
 HUGGINGFACE_TOKEN = os.getenv("HF_TOKEN")

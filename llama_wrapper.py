@@ -15,6 +15,8 @@ from utils.tokenize import (
 )
 from typing import Optional
 
+from accelerate import Accelerator
+
 
 class AttnWrapper(t.nn.Module):
     """
@@ -122,20 +124,21 @@ class LlamaWrapper:
         use_chat: bool = True,
         override_model_weights_path: Optional[str] = None,
     ):
-        self.device = "cuda" if t.cuda.is_available() else "cpu"
+        self.accelerator = Accelerator()
+        self.device = self.accelerator.device
         self.use_chat = use_chat
         self.model_name_path = get_model_path(size, not use_chat)
         self.tokenizer = AutoTokenizer.from_pretrained(
             self.model_name_path, token=hf_token
         )
         self.model = AutoModelForCausalLM.from_pretrained(
-            self.model_name_path, token=hf_token
+            self.model_name_path, token=hf_token, device_map='auto',
         )
         if override_model_weights_path is not None:
             self.model.load_state_dict(t.load(override_model_weights_path))
         if size != "7b":
             self.model = self.model.half()
-        self.model = self.model.to(self.device)
+        self.model = self.accelerator.prepare(self.model)
         if use_chat:
             self.END_STR = t.tensor(self.tokenizer.encode(ADD_AFTER_POS_CHAT)[1:]).to(
                 self.device
