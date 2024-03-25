@@ -1,4 +1,18 @@
-# Steering Llama 2 with Contrastive Activation Addition
+Steering Llama 2 with Contrastive Activation Addition
+====
+
+[![Formatted with black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
+
+
+## Prerequisites
+
+It's easiest to run this codebase with at least 48 GB of GPU memory. 
+
+Checkout the `acc` branch for work on implementing model-parrallelism with the `accelerate` library 
+to get this codebase working on single-node multiple-GPU machines with at least 48 GB of total GPU memory.
+Specifically commit `e0499c9` allows  `generate_vectors.py` to be run with model-parrallelism for the 7B and 13B models. 
+
+
 
 ## Setup
 
