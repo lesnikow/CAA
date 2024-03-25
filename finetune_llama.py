@@ -20,11 +20,16 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 import torch.distributed as dist
 import torch.multiprocessing as mp
 import datetime
-from behaviors import ALL_BEHAVIORS, FINETUNE_PATH, get_ab_data_path, get_finetuned_model_path
+from behaviors import (
+    ALL_BEHAVIORS,
+    FINETUNE_PATH,
+    get_ab_data_path,
+    get_finetuned_model_path,
+)
 
-os.environ['MASTER_ADDR'] = '127.0.0.1'
-os.environ['MASTER_PORT'] = '29500'
-os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':4096:8'
+os.environ["MASTER_ADDR"] = "127.0.0.1"
+os.environ["MASTER_PORT"] = "29500"
+os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
 load_dotenv()
 
 HUGGINGFACE_TOKEN = os.getenv("HF_TOKEN")
@@ -95,9 +100,7 @@ def run_eval_loop(model_path, device, max_new_tokens=50):
     device = t.device(f"cuda:0") if t.cuda.is_available() else "cpu"
     tokenizer = AutoTokenizer.from_pretrained(MODEL, token=HUGGINGFACE_TOKEN)
     tokenizer.pad_token = tokenizer.eos_token
-    model = AutoModelForCausalLM.from_pretrained(
-        MODEL, token=HUGGINGFACE_TOKEN
-    )
+    model = AutoModelForCausalLM.from_pretrained(MODEL, token=HUGGINGFACE_TOKEN)
     model.load_state_dict(t.load(model_path))
     model = model.to(device)
     print("Running eval loop. Enter 'exit' to exit.")
@@ -191,7 +194,11 @@ def finetune(
                     f"Rank: {rank} | Epoch {epoch + 1}/{n_epochs} | Batch {i}/{len(dataloader)} | Avg Loss: {avg_loss / n_batches}"
                 )
                 with open(
-                    os.path.join("logs", f"rank_{rank}_step_{i}_epoch_{epoch}_behavior_{behavior}.log"), "w"
+                    os.path.join(
+                        "logs",
+                        f"rank_{rank}_step_{i}_epoch_{epoch}_behavior_{behavior}.log",
+                    ),
+                    "w",
                 ) as logfile:
                     logfile.write(t.cuda.memory_summary(device=DEVICE))
                     logfile.write("\navg_loss: " + str(avg_loss / n_batches))
@@ -202,15 +209,19 @@ def finetune(
     dist.barrier()
     if rank == 0:
         # Print test accuracy
-        test_accuracy = eval_model(ddp_model.module, test_dataloader, maximize_positive, DEVICE)
-        print(
-            f"Test accuracy (Rank {rank}): {test_accuracy}"
+        test_accuracy = eval_model(
+            ddp_model.module, test_dataloader, maximize_positive, DEVICE
         )
+        print(f"Test accuracy (Rank {rank}): {test_accuracy}")
         # Save the model after training completes
         t.save(ddp_model.module.state_dict(), save_path)
         # Save test accuracy to final log file
         with open(
-            os.path.join("finetune_logs", f"final_rank_{rank}_behavior_{behavior}_{direction}.log"), "w"
+            os.path.join(
+                "finetune_logs",
+                f"final_rank_{rank}_behavior_{behavior}_{direction}.log",
+            ),
+            "w",
         ) as finalfile:
             finalfile.write(f"Test accuracy: {test_accuracy}\n")
             finalfile.write(f"Time taken: {end_time - start_time}")

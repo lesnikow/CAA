@@ -6,6 +6,7 @@ import behaviors
 N_TEST = 50
 MAX_N_GENERATE = 1000
 
+
 def make_generate_test_datasets(behavior):
     read_path = behaviors.get_raw_data_path(behavior)
     write_generate_path = behaviors.get_ab_data_path(behavior)
@@ -27,7 +28,9 @@ def make_generate_test_datasets(behavior):
             answer_not_matching_behavior = answer_not_matching_behavior[0]
         cleaned_data.append(
             {
-                "question": question.replace("Question:", "").replace("Answer:", "").strip(),
+                "question": question.replace("Question:", "")
+                .replace("Answer:", "")
+                .strip(),
                 "answer_matching_behavior": answer_matching_behavior.strip(),
                 "answer_not_matching_behavior": answer_not_matching_behavior.strip(),
             }
@@ -53,9 +56,11 @@ def make_generate_test_datasets(behavior):
             json.dump(open_ended_test, f, indent=4)
     print(f"{behavior}: n_generate: {n_generate} | n_test: {N_TEST}")
 
+
 def main():
     for behavior in behaviors.ALL_BEHAVIORS:
         make_generate_test_datasets(behavior)
+
 
 if __name__ == "__main__":
     main()

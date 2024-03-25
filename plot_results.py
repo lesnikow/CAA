@@ -14,10 +14,17 @@ import matplotlib.cm as cm
 import numpy as np
 import argparse
 from steering_settings import SteeringSettings
-from behaviors import ANALYSIS_PATH, HUMAN_NAMES, get_results_dir, get_analysis_dir, ALL_BEHAVIORS
+from behaviors import (
+    ANALYSIS_PATH,
+    HUMAN_NAMES,
+    get_results_dir,
+    get_analysis_dir,
+    ALL_BEHAVIORS,
+)
 from utils.helpers import set_plotting_settings
 
 set_plotting_settings()
+
 
 def get_data(
     layer: int,
@@ -26,7 +33,9 @@ def get_data(
 ) -> Dict[str, Any]:
     directory = get_results_dir(settings.behavior)
     if settings.type == "open_ended":
-        directory = directory.replace("results", os.path.join("results", "open_ended_scores"))
+        directory = directory.replace(
+            "results", os.path.join("results", "open_ended_scores")
+        )
     filenames = settings.filter_result_files_by_suffix(
         directory, layer=layer, multiplier=multiplier
     )
@@ -102,32 +111,64 @@ def plot_ab_results_for_layer(
             )
             all_results[system_prompt] = res_list
         except:
-            print(f"[WARN] Missing data for system_prompt={system_prompt} for layer={layer}")
+            print(
+                f"[WARN] Missing data for system_prompt={system_prompt} for layer={layer}"
+            )
     plt.legend()
     plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x:.0%}"))
     plt.xlabel("Multiplier")
     plt.ylabel("p(answer matching behavior)")
     plt.xticks(ticks=multipliers, labels=multipliers)
-    if (settings.override_vector is None) and (settings.override_vector_model is None) and (settings.override_model_weights_path is None):
-        plt.title(f"{HUMAN_NAMES[settings.behavior]} - {settings.get_formatted_model_name()}", fontsize=11)
+    if (
+        (settings.override_vector is None)
+        and (settings.override_vector_model is None)
+        and (settings.override_model_weights_path is None)
+    ):
+        plt.title(
+            f"{HUMAN_NAMES[settings.behavior]} - {settings.get_formatted_model_name()}",
+            fontsize=11,
+        )
     plt.tight_layout()
     plt.savefig(save_to, format="png")
     # Save data in all_results used for plotting as .txt
-    with open(save_to.replace(".png", ".txt"), "w") as f, open(save_to.replace(".png", ".tex"), "w") as f_tex:
+    with open(save_to.replace(".png", ".txt"), "w") as f, open(
+        save_to.replace(".png", ".tex"), "w"
+    ) as f_tex:
         for system_prompt, res_list in all_results.items():
             for multiplier, score in res_list:
                 f.write(f"{system_prompt}\t{multiplier}\t{score}\n")
         if len(all_results) != 3:
             return
         try:
-            none_results = dict(all_results[None])[-1], dict(all_results[None])[0], dict(all_results[None])[1]
-            pos_results = dict(all_results["pos"])[-1], dict(all_results["pos"])[0], dict(all_results["pos"])[1]
-            neg_results = dict(all_results["neg"])[-1], dict(all_results["neg"])[0], dict(all_results["neg"])[1]
-            f_tex.write(f"{HUMAN_NAMES[settings.behavior]} & {none_results[0]:.2f} & {none_results[1]:.2f} & {none_results[2]:.2f} & {pos_results[0]:.2f} & {pos_results[1]:.2f} & {pos_results[2]:.2f} & {neg_results[0]:.2f} & {neg_results[1]:.2f} & {neg_results[2]:.2f}")
+            none_results = (
+                dict(all_results[None])[-1],
+                dict(all_results[None])[0],
+                dict(all_results[None])[1],
+            )
+            pos_results = (
+                dict(all_results["pos"])[-1],
+                dict(all_results["pos"])[0],
+                dict(all_results["pos"])[1],
+            )
+            neg_results = (
+                dict(all_results["neg"])[-1],
+                dict(all_results["neg"])[0],
+                dict(all_results["neg"])[1],
+            )
+            f_tex.write(
+                f"{HUMAN_NAMES[settings.behavior]} & {none_results[0]:.2f} & {none_results[1]:.2f} & {none_results[2]:.2f} & {pos_results[0]:.2f} & {pos_results[1]:.2f} & {pos_results[2]:.2f} & {neg_results[0]:.2f} & {neg_results[1]:.2f} & {neg_results[2]:.2f}"
+            )
         except KeyError:
             pass
 
-def plot_finetuning_openended_comparison(settings: SteeringSettings, finetune_pos_path: str, finetune_neg_path: str, multipliers: list[float], layer: int):
+
+def plot_finetuning_openended_comparison(
+    settings: SteeringSettings,
+    finetune_pos_path: str,
+    finetune_neg_path: str,
+    multipliers: list[float],
+    layer: int,
+):
     save_to = os.path.join(
         get_analysis_dir(settings.behavior),
         f"finetune_comparison_{layer}_{settings.type}.png",
@@ -137,7 +178,7 @@ def plot_finetuning_openended_comparison(settings: SteeringSettings, finetune_po
     model_paths = {
         "Positive finetuned": finetune_pos_path,
         "Negative finetuned": finetune_neg_path,
-        "No finetuning": None
+        "No finetuning": None,
     }
     all_res = {}
     for model_name, model_path in model_paths.items():
@@ -150,7 +191,9 @@ def plot_finetuning_openended_comparison(settings: SteeringSettings, finetune_po
             elif settings.type == "ab":
                 avg_score = get_avg_key_prob(results, "answer_matching_behavior")
             else:
-                raise ValueError(f"Unsupported eval type for finetuning comparison {settings.type}")
+                raise ValueError(
+                    f"Unsupported eval type for finetuning comparison {settings.type}"
+                )
             res_list.append((multiplier, avg_score))
         res_list.sort(key=lambda x: x[0])
         plt.plot(
@@ -170,18 +213,33 @@ def plot_finetuning_openended_comparison(settings: SteeringSettings, finetune_po
     plt.title(f"CAA + finetuning {HUMAN_NAMES[settings.behavior]}")
     plt.tight_layout()
     plt.savefig(save_to, format="png")
-    with open(save_to.replace(".png", ".txt"), "w") as f, open(save_to.replace(".png", ".tex"), "w") as f_tex:
+    with open(save_to.replace(".png", ".txt"), "w") as f, open(
+        save_to.replace(".png", ".tex"), "w"
+    ) as f_tex:
         for model_name, res_list in all_res.items():
             for multiplier, score in res_list:
                 f.write(f"{model_name}\t{multiplier}\t{score}\n")
         try:
-            none_results = dict(all_res["No finetuning"])[-1], dict(all_res["No finetuning"])[0], dict(all_res["No finetuning"])[1]
-            pos_results = dict(all_res["Positive finetuned"])[-1], dict(all_res["Positive finetuned"])[0], dict(all_res["Positive finetuned"])[1]
-            neg_results = dict(all_res["Negative finetuned"])[-1], dict(all_res["Negative finetuned"])[0], dict(all_res["Negative finetuned"])[1]
-            f_tex.write(f"{HUMAN_NAMES[settings.behavior]} & {none_results[0]:.2f} & {none_results[1]:.2f} & {none_results[2]:.2f} & {pos_results[0]:.2f} & {pos_results[1]:.2f} & {pos_results[2]:.2f} & {neg_results[0]:.2f} & {neg_results[1]:.2f} & {neg_results[2]:.2f}")
+            none_results = (
+                dict(all_res["No finetuning"])[-1],
+                dict(all_res["No finetuning"])[0],
+                dict(all_res["No finetuning"])[1],
+            )
+            pos_results = (
+                dict(all_res["Positive finetuned"])[-1],
+                dict(all_res["Positive finetuned"])[0],
+                dict(all_res["Positive finetuned"])[1],
+            )
+            neg_results = (
+                dict(all_res["Negative finetuned"])[-1],
+                dict(all_res["Negative finetuned"])[0],
+                dict(all_res["Negative finetuned"])[1],
+            )
+            f_tex.write(
+                f"{HUMAN_NAMES[settings.behavior]} & {none_results[0]:.2f} & {none_results[1]:.2f} & {none_results[2]:.2f} & {pos_results[0]:.2f} & {pos_results[1]:.2f} & {pos_results[2]:.2f} & {neg_results[0]:.2f} & {neg_results[1]:.2f} & {neg_results[2]:.2f}"
+            )
         except KeyError:
             pass
-
 
 
 def plot_tqa_mmlu_results_for_layer(
@@ -203,16 +261,27 @@ def plot_tqa_mmlu_results_for_layer(
             res_per_category[category].append((multiplier, avg_key_prob))
 
     plt.figure(figsize=(10, 5))
-    for idx, (category, res_list) in enumerate(sorted(res_per_category.items(), key=lambda x: x[0])):
+    for idx, (category, res_list) in enumerate(
+        sorted(res_per_category.items(), key=lambda x: x[0])
+    ):
         x = [idx] * len(res_list)  # Assign a unique x-coordinate for each category
         y = [score for _, score in res_list]  # Extract y-coordinates from the results
-        colors = cm.rainbow(np.linspace(0, 1, len(res_list)))  # Assign colors based on the rainbow spectrum
-        plt.scatter(x, y, color=colors, s=80)  # Plot the points with the assigned colors
+        colors = cm.rainbow(
+            np.linspace(0, 1, len(res_list))
+        )  # Assign colors based on the rainbow spectrum
+        plt.scatter(
+            x, y, color=colors, s=80
+        )  # Plot the points with the assigned colors
 
     # Add a legend for the colors with the correct rainbow spectrum cm.rainbow(np.linspace(0, 1, len(multipliers)))
     # Need to ensure dots colored with raindbow rather than default
     for idx, multiplier in enumerate(multipliers):
-        plt.scatter([], [], color=cm.rainbow(np.linspace(0, 1, len(multipliers)))[idx], label=f"Multiplier {multiplier}")
+        plt.scatter(
+            [],
+            [],
+            color=cm.rainbow(np.linspace(0, 1, len(multipliers)))[idx],
+            label=f"Multiplier {multiplier}",
+        )
     plt.legend(loc="upper left")
 
     # Final plot adjustments
@@ -220,8 +289,14 @@ def plot_tqa_mmlu_results_for_layer(
     plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x:.0%}"))
     plt.xlabel("Multiplier")
     plt.ylabel("Probability of correct answer to A/B question")
-    if (settings.override_vector is None) and (settings.override_vector_model is None) and (settings.override_model_weights_path is None):
-        plt.title(f"Effect of {HUMAN_NAMES[settings.behavior]} CAA on {settings.get_formatted_model_name()} performance")
+    if (
+        (settings.override_vector is None)
+        and (settings.override_vector_model is None)
+        and (settings.override_model_weights_path is None)
+    ):
+        plt.title(
+            f"Effect of {HUMAN_NAMES[settings.behavior]} CAA on {settings.get_formatted_model_name()} performance"
+        )
     plt.tight_layout()
     plt.savefig(save_to, format="png")
 
@@ -234,13 +309,15 @@ def plot_tqa_mmlu_results_for_layer(
             return f"\\better{{{x_rounded_2dp:.2f}}}"
         else:
             return f"\\same{{{x_rounded_2dp:.2f}}}"
-        
+
     def _format_category_name(c):
         # split by _ and capitalize first letter of each word
         return " ".join([word.capitalize() for word in c.split("_")])
-    
+
     # Optionally, save the data used for plotting
-    with open(save_to.replace(".png", ".txt"), "w") as f, open(save_to.replace(".png", ".tex"), "w") as f_tex:
+    with open(save_to.replace(".png", ".txt"), "w") as f, open(
+        save_to.replace(".png", ".tex"), "w"
+    ) as f_tex:
         pos_avg = 0
         neg_avg = 0
         no_steering_avg = 0
@@ -254,12 +331,18 @@ def plot_tqa_mmlu_results_for_layer(
                 pos_avg += positive_steering_res
                 neg_avg += negative_steering_res
                 no_steering_avg += no_steering_res
-                positive_steering_res = _format_for_latex_table(positive_steering_res, no_steering_res)
-                negative_steering_res = _format_for_latex_table(negative_steering_res, no_steering_res)
+                positive_steering_res = _format_for_latex_table(
+                    positive_steering_res, no_steering_res
+                )
+                negative_steering_res = _format_for_latex_table(
+                    negative_steering_res, no_steering_res
+                )
                 no_steering_res = f"\\same{{{no_steering_res:.2f}}}"
-                f_tex.write(f"{_format_category_name(category)} & {positive_steering_res} & {negative_steering_res} & {no_steering_res} \\\ \n")
+                f_tex.write(
+                    f"{_format_category_name(category)} & {positive_steering_res} & {negative_steering_res} & {no_steering_res} \\\ \n"
+                )
             except KeyError:
-                pass                
+                pass
             for multiplier, score in res_list:
                 f.write(f"{category}\t{multiplier}\t{score}\n")
         pos_avg /= len(res_per_category)
@@ -335,8 +418,14 @@ def plot_ab_data_per_layer(
         )
     # use % formatting for y axis
     plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x:.0%}"))
-    if (settings.override_vector is None) and (settings.override_vector_model is None) and (settings.override_model_weights_path is None):
-        plt.title(f"{HUMAN_NAMES[settings.behavior]} CAA, {settings.get_formatted_model_name()}")
+    if (
+        (settings.override_vector is None)
+        and (settings.override_vector_model is None)
+        and (settings.override_model_weights_path is None)
+    ):
+        plt.title(
+            f"{HUMAN_NAMES[settings.behavior]} CAA, {settings.get_formatted_model_name()}"
+        )
     plt.xlabel("Layer")
     plt.ylabel("Probability of answer matching behavior")
     plt.xticks(ticks=sorted(layers), labels=sorted(layers))
@@ -350,8 +439,13 @@ def plot_ab_data_per_layer(
                 f.write(f"{all_results[idx]}\t")
             f.write("\n")
 
+
 def plot_effect_on_behaviors(
-    layer: int, multipliers: List[int], behaviors: List[str], settings: SteeringSettings, title: str = None   
+    layer: int,
+    multipliers: List[int],
+    behaviors: List[str],
+    settings: SteeringSettings,
+    title: str = None,
 ):
     plt.clf()
     plt.figure(figsize=(3, 3))
@@ -409,8 +503,12 @@ def plot_effect_on_behaviors(
                 f.write(f"{all_results[idx]}\t")
             f.write("\n")
 
+
 def plot_layer_sweeps(
-    layers: List[int], behaviors: List[str], settings: SteeringSettings, title: str = None
+    layers: List[int],
+    behaviors: List[str],
+    settings: SteeringSettings,
+    title: str = None,
 ):
     plt.clf()
     plt.figure(figsize=(5, 3))
@@ -426,9 +524,21 @@ def plot_layer_sweeps(
         pos_per_layer = []
         neg_per_layer = []
         for layer in sorted(layers):
-            base_res = get_avg_key_prob(get_data(layer, 0, settings), "answer_matching_behavior")
-            pos_res = get_avg_key_prob(get_data(layer, 1, settings), "answer_matching_behavior") - base_res
-            neg_res = get_avg_key_prob(get_data(layer, -1, settings), "answer_matching_behavior") - base_res
+            base_res = get_avg_key_prob(
+                get_data(layer, 0, settings), "answer_matching_behavior"
+            )
+            pos_res = (
+                get_avg_key_prob(
+                    get_data(layer, 1, settings), "answer_matching_behavior"
+                )
+                - base_res
+            )
+            neg_res = (
+                get_avg_key_prob(
+                    get_data(layer, -1, settings), "answer_matching_behavior"
+                )
+                - base_res
+            )
             pos_per_layer.append(pos_res)
             neg_per_layer.append(neg_res)
         all_results.append((pos_per_layer, neg_per_layer))
@@ -477,6 +587,7 @@ def plot_layer_sweeps(
     plt.tight_layout()
     plt.savefig(save_to, format="png")
 
+
 def steering_settings_from_args(args, behavior: str) -> SteeringSettings:
     steering_settings = SteeringSettings()
     steering_settings.type = args.type
@@ -488,6 +599,7 @@ def steering_settings_from_args(args, behavior: str) -> SteeringSettings:
     if len(args.override_weights) > 0:
         steering_settings.override_model_weights_path = args.override_weights[0]
     return steering_settings
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -511,33 +623,53 @@ if __name__ == "__main__":
     parser.add_argument("--use_base_model", action="store_true", default=False)
     parser.add_argument("--model_size", type=str, choices=["7b", "13b"], default="7b")
     parser.add_argument("--override_weights", type=str, nargs="+", default=[])
-    
+
     args = parser.parse_args()
 
     steering_settings = steering_settings_from_args(args, args.behaviors[0])
 
     if len(args.override_weights) > 0:
-        plot_finetuning_openended_comparison(steering_settings, args.override_weights[0], args.override_weights[1], args.multipliers, args.layers[0])
+        plot_finetuning_openended_comparison(
+            steering_settings,
+            args.override_weights[0],
+            args.override_weights[1],
+            args.multipliers,
+            args.layers[0],
+        )
         exit(0)
 
     if steering_settings.type == "ab":
         plot_layer_sweeps(args.layers, args.behaviors, steering_settings, args.title)
 
     if len(args.layers) == 1 and steering_settings.type != "truthful_qa":
-        plot_effect_on_behaviors(args.layers[0], args.multipliers, args.behaviors, steering_settings, args.title)
+        plot_effect_on_behaviors(
+            args.layers[0],
+            args.multipliers,
+            args.behaviors,
+            steering_settings,
+            args.title,
+        )
 
     for behavior in args.behaviors:
         steering_settings = steering_settings_from_args(args, behavior)
         if steering_settings.type == "ab":
-            if len(args.layers) > 1 and 1 in args.multipliers and -1 in args.multipliers:
-                plot_ab_data_per_layer(
-                    args.layers, [1, -1], steering_settings
-                )
+            if (
+                len(args.layers) > 1
+                and 1 in args.multipliers
+                and -1 in args.multipliers
+            ):
+                plot_ab_data_per_layer(args.layers, [1, -1], steering_settings)
             if len(args.layers) == 1:
-                plot_ab_results_for_layer(args.layers[0], args.multipliers, steering_settings)
+                plot_ab_results_for_layer(
+                    args.layers[0], args.multipliers, steering_settings
+                )
         elif steering_settings.type == "open_ended":
             for layer in args.layers:
                 plot_open_ended_results(layer, args.multipliers, steering_settings)
-        elif steering_settings.type == "truthful_qa" or steering_settings.type == "mmlu":
+        elif (
+            steering_settings.type == "truthful_qa" or steering_settings.type == "mmlu"
+        ):
             for layer in args.layers:
-                plot_tqa_mmlu_results_for_layer(layer, args.multipliers, steering_settings)
+                plot_tqa_mmlu_results_for_layer(
+                    layer, args.multipliers, steering_settings
+                )

@@ -8,11 +8,18 @@ import torch as t
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
-from behaviors import ALL_BEHAVIORS, get_analysis_dir, HUMAN_NAMES, get_steering_vector, ANALYSIS_PATH
+from behaviors import (
+    ALL_BEHAVIORS,
+    get_analysis_dir,
+    HUMAN_NAMES,
+    get_steering_vector,
+    ANALYSIS_PATH,
+)
 from utils.helpers import get_model_path, model_name_format, set_plotting_settings
 from tqdm import tqdm
 
 set_plotting_settings()
+
 
 def get_caa_info(behavior: str, model_size: str, is_base: bool):
     all_vectors = []
@@ -26,6 +33,7 @@ def get_caa_info(behavior: str, model_size: str, is_base: bool):
         "model_name": model_name_format(model_path),
     }
 
+
 def plot_per_layer_similarities(model_size: str, is_base: bool, behavior: str):
     analysis_dir = get_analysis_dir(behavior)
     caa_info = get_caa_info(behavior, model_size, is_base)
@@ -35,16 +43,25 @@ def plot_per_layer_similarities(model_size: str, is_base: bool, behavior: str):
     matrix = np.zeros((n_layers, n_layers))
     for layer1 in range(n_layers):
         for layer2 in range(n_layers):
-            cosine_sim = t.nn.functional.cosine_similarity(all_vectors[layer1], all_vectors[layer2], dim=0).item()
+            cosine_sim = t.nn.functional.cosine_similarity(
+                all_vectors[layer1], all_vectors[layer2], dim=0
+            ).item()
             matrix[layer1, layer2] = cosine_sim
     plt.figure(figsize=(3, 3))
-    sns.heatmap(matrix, annot=False, cmap='coolwarm')
+    sns.heatmap(matrix, annot=False, cmap="coolwarm")
     # Set ticks for every 5th layer
     plt.xticks(list(range(n_layers))[::5], list(range(n_layers))[::5])
     plt.yticks(list(range(n_layers))[::5], list(range(n_layers))[::5])
     plt.title(f"Layer similarity, {model_name}", fontsize=11)
-    plt.savefig(os.path.join(analysis_dir, f"cosine_similarities_{model_name.replace(' ', '_')}_{behavior}.svg"), format='svg')
+    plt.savefig(
+        os.path.join(
+            analysis_dir,
+            f"cosine_similarities_{model_name.replace(' ', '_')}_{behavior}.svg",
+        ),
+        format="svg",
+    )
     plt.close()
+
 
 def plot_base_chat_similarities():
     plt.figure(figsize=(5, 3))
@@ -55,17 +72,26 @@ def plot_base_chat_similarities():
         vectors_chat = chat_caa_info["vectors"]
         cos_sims = []
         for layer in range(base_caa_info["n_layers"]):
-            cos_sim = t.nn.functional.cosine_similarity(vectors_base[layer], vectors_chat[layer], dim=0).item()
+            cos_sim = t.nn.functional.cosine_similarity(
+                vectors_base[layer], vectors_chat[layer], dim=0
+            ).item()
             cos_sims.append(cos_sim)
-        plt.plot(list(range(base_caa_info["n_layers"])), cos_sims, label=HUMAN_NAMES[behavior], linestyle="solid", linewidth=2)
+        plt.plot(
+            list(range(base_caa_info["n_layers"])),
+            cos_sims,
+            label=HUMAN_NAMES[behavior],
+            linestyle="solid",
+            linewidth=2,
+        )
     plt.xlabel("Layer")
     plt.ylabel("Cosine Similarity")
     plt.title("Base vs. Chat model vector similarity", fontsize=12)
     # legend in bottom right
     plt.legend(loc="lower right")
     plt.tight_layout()
-    plt.savefig(os.path.join(ANALYSIS_PATH, "base_chat_similarities.png"), format='png')
+    plt.savefig(os.path.join(ANALYSIS_PATH, "base_chat_similarities.png"), format="png")
     plt.close()
+
 
 if __name__ == "__main__":
     for behavior in tqdm(ALL_BEHAVIORS):

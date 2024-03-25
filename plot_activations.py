@@ -11,13 +11,20 @@ import os
 from matplotlib import pyplot as plt
 import argparse
 from sklearn.decomposition import PCA
-from behaviors import HUMAN_NAMES, get_activations_path, get_ab_data_path, get_analysis_dir, ALL_BEHAVIORS
+from behaviors import (
+    HUMAN_NAMES,
+    get_activations_path,
+    get_ab_data_path,
+    get_analysis_dir,
+    ALL_BEHAVIORS,
+)
 from utils.helpers import get_model_path, set_plotting_settings
 from tqdm import tqdm
 
 DATASET_FILE = os.path.join("preprocessed_data", "generate_dataset.json")
 
 set_plotting_settings()
+
 
 def save_activation_projection_pca(behavior: str, layer: int, model_name_path: str):
     title = f"{HUMAN_NAMES[behavior]}, layer {layer}"
