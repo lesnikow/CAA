@@ -46,10 +46,14 @@ FINETUNE_PATH = os.path.join(BASE_DIR, "finetuned_models")
 
 
 def get_vector_dir(behavior: str, normalized=False) -> str:
-    return os.path.join(NORMALIZED_VECTORS_PATH if normalized else VECTORS_PATH, behavior)
+    return os.path.join(
+        NORMALIZED_VECTORS_PATH if normalized else VECTORS_PATH, behavior
+    )
 
 
-def get_vector_path(behavior: str, layer, model_name_path: str, normalized=False) -> str:
+def get_vector_path(
+    behavior: str, layer, model_name_path: str, normalized=False
+) -> str:
     return os.path.join(
         get_vector_dir(behavior, normalized=normalized),
         f"vec_layer_{make_tensor_save_suffix(layer, model_name_path)}.pt",
@@ -166,7 +170,9 @@ def get_mmlu_data():
 
 
 def get_steering_vector(behavior, layer, model_name_path, normalized=False):
-    return t.load(get_vector_path(behavior, layer, model_name_path, normalized=normalized))
+    return t.load(
+        get_vector_path(behavior, layer, model_name_path, normalized=normalized)
+    )
 
 
 def get_finetuned_model_path(
@@ -181,7 +187,10 @@ def get_finetuned_model_path(
 
 
 def get_finetuned_model_results_path(
-    behavior: str, pos_or_neg: Optional[Literal["pos", "neg"]], eval_type: str, layer=None
+    behavior: str,
+    pos_or_neg: Optional[Literal["pos", "neg"]],
+    eval_type: str,
+    layer=None,
 ) -> str:
     if layer is None:
         layer = "all"

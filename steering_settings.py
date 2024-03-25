@@ -3,6 +3,7 @@ import os
 from dataclasses import dataclass
 from behaviors import ALL_BEHAVIORS
 
+
 @dataclass
 class SteeringSettings:
     behavior: str = "sycophancy"
@@ -16,7 +17,7 @@ class SteeringSettings:
 
     def __post_init__(self):
         assert self.behavior in ALL_BEHAVIORS, f"Invalid behavior {self.behavior}"
-        
+
     def make_result_save_suffix(
         self,
         layer: Optional[int] = None,
@@ -34,7 +35,13 @@ class SteeringSettings:
             "model_size": self.model_size,
             "override_model_weights_path": self.override_model_weights_path,
         }
-        return "_".join([f"{k}={str(v).replace('/', '-')}" for k, v in elements.items() if v is not None])
+        return "_".join(
+            [
+                f"{k}={str(v).replace('/', '-')}"
+                for k, v in elements.items()
+                if v is not None
+            ]
+        )
 
     def filter_result_files_by_suffix(
         self,
@@ -43,8 +50,8 @@ class SteeringSettings:
         multiplier: Optional[int] = None,
     ):
         elements = {
-            "layer": str(layer)+"_",
-            "multiplier": str(float(multiplier))+"_",
+            "layer": str(layer) + "_",
+            "multiplier": str(float(multiplier)) + "_",
             "behavior": self.behavior,
             "type": self.type,
             "system_prompt": self.system_prompt,
@@ -61,13 +68,16 @@ class SteeringSettings:
         matching_files = []
 
         for filename in os.listdir(directory):
-            if all(f"{k}={str(v).replace('/', '-')}" in filename for k, v in filtered_elements.items()):
+            if all(
+                f"{k}={str(v).replace('/', '-')}" in filename
+                for k, v in filtered_elements.items()
+            ):
                 # ensure remove_elements are *not* present
                 if all(f"{k}=" not in filename for k in remove_elements):
                     matching_files.append(filename)
 
         return [os.path.join(directory, f) for f in matching_files]
-    
+
     def get_formatted_model_name(self):
         if self.use_base_model:
             if self.model_size == "7b":
@@ -79,4 +89,3 @@ class SteeringSettings:
                 return "Llama 2 7B Chat"
             else:
                 return "Llama 2 13B Chat"
-        

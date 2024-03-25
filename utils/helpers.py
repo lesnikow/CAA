@@ -1,8 +1,9 @@
 import torch as t
 import matplotlib.pyplot as plt
 
+
 def set_plotting_settings():
-    plt.style.use('seaborn-v0_8')
+    plt.style.use("seaborn-v0_8")
     params = {
         "ytick.color": "black",
         "xtick.color": "black",
@@ -11,15 +12,22 @@ def set_plotting_settings():
         "font.family": "serif",
         "font.size": 13,
         "figure.autolayout": True,
-        'figure.dpi': 600,
+        "figure.dpi": 600,
     }
     plt.rcParams.update(params)
 
-    custom_colors = ['#377eb8', '#ff7f00', '#4daf4a',
-                     '#f781bf', '#a65628', '#984ea3',
-                     '#999999', '#e41a1c', '#dede00']
-    plt.rcParams['axes.prop_cycle'] = plt.cycler(color=custom_colors)
-
+    custom_colors = [
+        "#377eb8",
+        "#ff7f00",
+        "#4daf4a",
+        "#f781bf",
+        "#a65628",
+        "#984ea3",
+        "#999999",
+        "#e41a1c",
+        "#dede00",
+    ]
+    plt.rcParams["axes.prop_cycle"] = plt.cycler(color=custom_colors)
 
 
 def add_vector_after_position(matrix, vector, position_ids, after=None):
@@ -68,6 +76,7 @@ def get_model_path(size: str, is_base: bool):
         return f"meta-llama/Llama-2-{size}-hf"
     else:
         return f"meta-llama/Llama-2-{size}-chat-hf"
+
 
 def model_name_format(name: str) -> str:
     name = name.lower()

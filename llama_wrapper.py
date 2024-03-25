@@ -2,7 +2,11 @@ import torch as t
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from matplotlib import pyplot as plt
 from matplotlib.ticker import ScalarFormatter
-from utils.helpers import add_vector_after_position, find_instruction_end_postion, get_model_path
+from utils.helpers import (
+    add_vector_after_position,
+    find_instruction_end_postion,
+    get_model_path,
+)
 from utils.tokenize import (
     tokenize_llama_chat,
     tokenize_llama_base,
@@ -162,13 +166,26 @@ class LlamaWrapper:
             )
             return self.tokenizer.batch_decode(generated)[0]
 
-    def generate_text(self, user_input: str, model_output: Optional[str] = None, system_prompt: Optional[str] = None, max_new_tokens: int = 50) -> str:
+    def generate_text(
+        self,
+        user_input: str,
+        model_output: Optional[str] = None,
+        system_prompt: Optional[str] = None,
+        max_new_tokens: int = 50,
+    ) -> str:
         if self.use_chat:
             tokens = tokenize_llama_chat(
-                tokenizer=self.tokenizer, user_input=user_input, model_output=model_output, system_prompt=system_prompt
+                tokenizer=self.tokenizer,
+                user_input=user_input,
+                model_output=model_output,
+                system_prompt=system_prompt,
             )
         else:
-            tokens = tokenize_llama_base(tokenizer=self.tokenizer, user_input=user_input, model_output=model_output)
+            tokens = tokenize_llama_base(
+                tokenizer=self.tokenizer,
+                user_input=user_input,
+                model_output=model_output,
+            )
         tokens = t.tensor(tokens).unsqueeze(0).to(self.device)
         return self.generate(tokens, max_new_tokens=max_new_tokens)
 
@@ -179,13 +196,25 @@ class LlamaWrapper:
             logits = self.model(tokens).logits
             return logits
 
-    def get_logits_from_text(self, user_input: str, model_output: Optional[str] = None, system_prompt: Optional[str] = None) -> t.Tensor:
+    def get_logits_from_text(
+        self,
+        user_input: str,
+        model_output: Optional[str] = None,
+        system_prompt: Optional[str] = None,
+    ) -> t.Tensor:
         if self.use_chat:
             tokens = tokenize_llama_chat(
-                tokenizer=self.tokenizer, user_input=user_input, model_output=model_output, system_prompt=system_prompt
+                tokenizer=self.tokenizer,
+                user_input=user_input,
+                model_output=model_output,
+                system_prompt=system_prompt,
             )
         else:
-            tokens = tokenize_llama_base(tokenizer=self.tokenizer, user_input=user_input, model_output=model_output)
+            tokens = tokenize_llama_base(
+                tokenizer=self.tokenizer,
+                user_input=user_input,
+                model_output=model_output,
+            )
         tokens = t.tensor(tokens).unsqueeze(0).to(self.device)
         return self.get_logits(tokens)
 
