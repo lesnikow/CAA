@@ -17,8 +17,8 @@ Specifically commit `e0499c9` allows  `generate_vectors.py` to be run with model
 ## Setup
 
 ```bash
-python3 -m venv venv
-source venv/bin/activate
+python3 -m venv caa
+source caa/bin/activate
 pip install -r requirements.txt
 ```
 
