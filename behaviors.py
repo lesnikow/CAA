@@ -19,7 +19,7 @@ HUMAN_NAMES = {
     COORDINATE: "AI Coordination",
     CORRIGIBLE: "Corrigibility",
     HALLUCINATION: "Hallucination",
-    USER_KNOWLEDGEABLENESS= "User Knowledgeableness"
+    USER_KNOWLEDGEABLENESS: "User Knowledgeableness",
     MYOPIC_REWARD: "Myopic Reward",
     SURVIVAL_INSTINCT: "Survival Instinct",
     SYCOPHANCY: "Sycophancy",
@@ -35,6 +35,10 @@ ALL_BEHAVIORS = [
     SURVIVAL_INSTINCT,
     SYCOPHANCY,
     REFUSAL,
+]
+
+SOME_BEHAVIORS =  [
+    USER_KNOWLEDGEABLENESS,
 ]
 
 VECTORS_PATH = os.path.join(BASE_DIR, "vectors")
