@@ -1,11 +1,14 @@
-"""
-Writes knowledgableness json dataset to disk, using .csv file(s).
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+""" User knowledgeableness make_dataset.py module
+Writes user-knowledgableness json dataset to disk, using .csv file(s).
 """
 
 import json
 import random
 
 import pandas as pd
+
 
 filenames = [
     "datasets/raw/knowledgeableness/direct_questions.csv",
@@ -17,17 +20,17 @@ random.seed(0)
 def make_dataset(
     filename, add_accept_truth_questions=True, add_accept_fiction_questions=True
 ):
-    """
-    Makes dataset.
-
+    """Makes dataset from a filename.
 
     Args:
-        `add_accept_truth_questions` is used to add questions that contrast
-        accepting vs. rejecting true questions to correct for "just reject
-        everything" bias.
+        filename: str, filename.
+        add_accept_fiction_questions: bool, whether to add questions that
+        contrast accepting vs. rejecting fiction questions to correct for "just
+        reject everything" bias.
+
 
     Returns:
-        data list.
+        list: The made dataset.
     """
     data = []
     df = pd.read_csv(filename)
@@ -84,6 +87,13 @@ def make_dataset(
 
 
 def make_datasets():
+    """Makes datasets from filenames. Iterates over filenames and makes
+    datasets.
+
+    Returns:
+        None
+    """
+
     all_data = []
     for f in filenames:
         data = make_dataset(f)
