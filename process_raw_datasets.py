@@ -1,22 +1,43 @@
-import os
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""process_raw_datasets module
+Defines the process_raw_datasets module for processing raw datasets
+into generate and test datasets.
+"""
+
 import json
+import os
 import random
+
 import behaviors
 
 N_TEST = 50
 MAX_N_GENERATE = 1000
 
+random.seed(0)
 
-def make_generate_test_datasets(behavior):
+
+def make_generate_test_datasets(behavior, shuffle=True):
+    """Makes generate and test datasets for a given behavior.
+
+    Args:
+        behavior: Behavior to make datasets for.
+        shuffle: Whether to shuffle cleaned data.
+
+    Returns:
+        None
+    """
     read_path = behaviors.get_raw_data_path(behavior)
     write_generate_path = behaviors.get_ab_data_path(behavior)
     write_test_path = behaviors.get_ab_data_path(behavior, test=True)
     write_open_ended_test_path = behaviors.get_open_ended_data_path(behavior)
-    # make subdirectories if they don't exist
+
     os.makedirs(os.path.dirname(write_generate_path), exist_ok=True)
     os.makedirs(os.path.dirname(write_test_path), exist_ok=True)
+
     with open(read_path, "r") as f:
         data = json.load(f)
+
     cleaned_data = []
     for item in data:
         question = item["question"]
@@ -35,14 +56,18 @@ def make_generate_test_datasets(behavior):
                 "answer_not_matching_behavior": answer_not_matching_behavior.strip(),
             }
         )
-    random.shuffle(cleaned_data)
+    if shuffle:
+        random.shuffle(cleaned_data)
+
     n_generate = min(MAX_N_GENERATE, len(cleaned_data) - N_TEST)
     generate_data = cleaned_data[:n_generate]
     test_data = cleaned_data[-N_TEST:]
+
     with open(write_generate_path, "w") as f:
         json.dump(generate_data, f, indent=4)
     with open(write_test_path, "w") as f:
         json.dump(test_data, f, indent=4)
+
     open_ended_test = []
     for item in test_data:
         open_ended_test.append(
@@ -58,7 +83,7 @@ def make_generate_test_datasets(behavior):
 
 
 def main():
-    for behavior in behaviors.ALL_BEHAVIORS:
+    for behavior in behaviors.SOME_BEHAVIORS:
         make_generate_test_datasets(behavior)
 
 
